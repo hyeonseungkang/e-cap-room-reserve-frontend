@@ -18,7 +18,7 @@ import type {
 } from "./types";
 import {readAccessToken} from "@/lib/utils";
 
-const BASE_URL = "http://localhost:3002";
+const BASE_URL = "https://e-cap-room-reserve-backend.netlify.app";
 
 export class ApiError extends Error {
   statusCode: number;
