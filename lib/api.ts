@@ -18,7 +18,7 @@ import type {
 } from "./types";
 import {readAccessToken} from "@/lib/utils";
 
-const BASE_URL = "e-cap-room-reserve-backend.hyeonseung.party";
+const BASE_URL = "https://e-cap-room-reserve-backend.hyeonseung.party";
 
 export class ApiError extends Error {
   statusCode: number;
