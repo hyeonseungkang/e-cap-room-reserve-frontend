@@ -54,13 +54,13 @@ export function ReservationStatusBadge({
   className,
 }: ReservationStatusBadgeProps) {
   const getStatusConfig = (status: ReservationStatusType) => {
-    switch (status.toUpperCase()) {
+    switch ((status || '').toUpperCase()) {
       case "RESERVED":
         return {
           label: "예약됨",
           className: "bg-blue-100 text-blue-700 hover:bg-blue-100",
         };
-      case "CANCELLED":
+      case "CANCELED":
         return {
           label: "취소됨",
           className: "bg-red-100 text-red-700 hover:bg-red-100",
