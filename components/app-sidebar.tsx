@@ -12,30 +12,33 @@ import {
     Building2,
     Users2,
     Menu,
-    X,
+    ClipboardCheck,
+    AlertTriangle,
+    Ban,
+    MessageSquare,
+    Wrench,
 } from "lucide-react";
 import {cn} from "@/lib/utils";
 import {Button} from "@/components/ui/button";
 import {Sheet, SheetContent, SheetTrigger} from "@/components/ui/sheet";
-import useSWR from "swr";
-import {fetcher} from "@/lib/api";
-import {Me} from "@/lib/types";
+import {useSession} from "@/hooks/use-session";
 
 const navigation = [
     {name: "대시보드", href: "/", icon: LayoutDashboard},
     {name: "회의실", href: "/rooms", icon: DoorOpen},
     {name: "예약 현황", href: "/reservations", icon: CalendarClock},
+    {name: "이용 기록", href: "/usage-logs", icon: ClipboardCheck},
+    {name: "취소 기록", href: "/cancellations", icon: Ban},
+    {name: "패널티", href: "/penalties", icon: AlertTriangle},
+    {name: "문의(QnA)", href: "/qna", icon: MessageSquare},
+    {name: "유지보수", href: "/maintenance", icon: Wrench},
     {name: "사용자 관리", href: "/users", icon: Users},
     {name: "관리자 설정", href: "/admins", icon: Shield},
 ];
 
 function SidebarContent({onNavigate}: { onNavigate?: () => void }) {
     const pathname = usePathname();
-
-    const {data: me} = useSWR<Me|null>(
-        `/auth/me`,
-        fetcher
-    );
+    const {session: me} = useSession();
 
     return (
         <div className="flex h-full flex-col">
@@ -63,7 +66,7 @@ function SidebarContent({onNavigate}: { onNavigate?: () => void }) {
                     <div>
                         {me ?
                             (<><p className="text-ms text-foreground">{me.name}</p>
-                                <p className="text-xs text-foreground">{me.type}</p></>) :
+                                <p className="text-xs text-foreground">{me.type === "admin" ? "관리자" : "사용자"}</p></>) :
                             (<><p className="text-ms text-foreground">로그인 후 사용가능</p>
                             </>)
                         }
