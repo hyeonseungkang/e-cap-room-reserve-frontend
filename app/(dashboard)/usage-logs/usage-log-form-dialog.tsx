@@ -59,6 +59,19 @@ export function UsageLogFormDialog({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // 예약 선택 → 체크인 시간을 예약 시작시각으로 기본 설정
+  const handleReservationChange = (value: string) => {
+    const res = reservations.find(
+      (r) => r.reservation_id.toString() === value
+    );
+    const checkIn = res ? toDateTimeLocalString(new Date(res.start_time)) : "";
+    setFormData((prev) => ({
+      ...prev,
+      reservation_id: value,
+      check_in_time: checkIn || prev.check_in_time,
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -121,9 +134,7 @@ export function UsageLogFormDialog({
               <Label htmlFor="reservation_id">예약 *</Label>
               <Select
                 value={formData.reservation_id}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, reservation_id: value })
-                }
+                onValueChange={handleReservationChange}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="예약 선택" />

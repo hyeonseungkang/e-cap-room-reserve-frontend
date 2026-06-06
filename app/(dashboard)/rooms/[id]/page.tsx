@@ -14,6 +14,7 @@ import {
   Pencil,
   Trash2,
   CalendarClock,
+  Wrench,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,12 +30,16 @@ import { PageHeader } from "@/components/page-header";
 import { LoadingPage } from "@/components/loading";
 import { ErrorPage } from "@/components/error-display";
 import { EmptyState } from "@/components/empty-state";
-import { RoomStatusBadge, ReservationStatusBadge } from "@/components/status-badge";
+import {
+  RoomStatusBadge,
+  ReservationStatusBadge,
+  GenericStatusBadge,
+} from "@/components/status-badge";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { EquipmentFormDialog } from "./equipment-form-dialog";
 import { formatReservationPeriod } from "@/lib/date-utils";
 import { fetcher, equipmentApi, ApiError } from "@/lib/api";
-import type { MeetingRoom, RoomEquipment } from "@/lib/types";
+import type { MeetingRoom, RoomEquipment, RoomMaintenanceLog } from "@/lib/types";
 
 export default function RoomDetailPage({
   params,
@@ -46,6 +51,10 @@ export default function RoomDetailPage({
 
   const { data: room, error, isLoading, mutate } = useSWR<MeetingRoom>(
     `/meeting-room/${roomId}`,
+    fetcher
+  );
+  const { data: maintenanceLogs } = useSWR<RoomMaintenanceLog[]>(
+    `/maintenance/room/${roomId}`,
     fetcher
   );
 
@@ -240,6 +249,51 @@ export default function RoomDetailPage({
                     </TableCell>
                   </TableRow>
                 ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Maintenance */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-lg">유지보수 이력</CardTitle>
+          <Link href="/maintenance">
+            <Button variant="outline" size="sm">
+              <Wrench className="mr-2 h-4 w-4" />
+              유지보수 관리
+            </Button>
+          </Link>
+        </CardHeader>
+        <CardContent>
+          {!maintenanceLogs || maintenanceLogs.length === 0 ? (
+            <EmptyState
+              title="유지보수 이력이 없습니다"
+              description="이 회의실에 대한 유지보수 기록이 아직 없습니다."
+            />
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>유지보수 유형</TableHead>
+                  <TableHead>상태</TableHead>
+                  <TableHead>담당 관리자</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {maintenanceLogs.map((log, index) => (
+                  index > 3 ? null : (
+                  <TableRow key={log.maintenance_id}>
+                    <TableCell className="font-medium">
+                      {log.maintenance_type || "-"}
+                    </TableCell>
+                    <TableCell>
+                      <GenericStatusBadge status={log.maintenance_status} />
+                    </TableCell>
+                    <TableCell>{log.admin?.name || "-"}</TableCell>
+                  </TableRow>
+                  )))}
               </TableBody>
             </Table>
           )}

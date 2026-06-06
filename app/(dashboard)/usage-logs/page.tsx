@@ -24,7 +24,7 @@ import { UsageLogFormDialog } from "./usage-log-form-dialog";
 import { formatDateTime } from "@/lib/date-utils";
 import { flattenReservations } from "@/lib/reservation-utils";
 import { fetcher, usageLogApi, ApiError } from "@/lib/api";
-import type { UsageLog, User } from "@/lib/types";
+import type { UsageLog, User, CancellationLog } from "@/lib/types";
 
 export default function UsageLogsPage() {
   const { data: logs, error, isLoading, mutate } = useSWR<UsageLog[]>(
@@ -32,7 +32,24 @@ export default function UsageLogsPage() {
     fetcher
   );
   const { data: users } = useSWR<User[]>("/user", fetcher);
+  const { data: cancellationLogs } = useSWR<CancellationLog[]>(
+    "/cancellation-log",
+    fetcher
+  );
   const reservations = flattenReservations(users);
+
+  // 취소 기록이 있는 예약 ID 집합
+  const canceledReservationIds = new Set(
+    (cancellationLogs || [])
+      .map((log) => log.reservation?.reservation_id)
+      .filter((id): id is number => id != null)
+  );
+  // 이용 기록 생성 가능한 예약: 상태 RESERVED + 취소 기록 없음
+  const selectableReservations = reservations.filter(
+    (res) =>
+      res.reservation_status === "RESERVED" &&
+      !canceledReservationIds.has(res.reservation_id)
+  );
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editing, setEditing] = useState<UsageLog | null>(null);
@@ -150,7 +167,7 @@ export default function UsageLogsPage() {
       <UsageLogFormDialog
         open={isCreateOpen}
         onOpenChange={setIsCreateOpen}
-        reservations={reservations}
+        reservations={selectableReservations}
         onSuccess={() => {
           setIsCreateOpen(false);
           mutate();
