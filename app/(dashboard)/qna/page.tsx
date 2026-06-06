@@ -22,6 +22,7 @@ import { EmptyState } from "@/components/empty-state";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { QuestionStatusBadge } from "@/components/status-badge";
 import { QuestionFormDialog } from "./question-form-dialog";
+import { QuestionDetailDialog } from "./question-detail-dialog";
 import { AnswerFormDialog } from "./answer-form-dialog";
 import { MappingFormDialog } from "./mapping-form-dialog";
 import { formatDate } from "@/lib/date-utils";
@@ -53,6 +54,7 @@ export default function QnaPage() {
   // 질문
   const [isQuestionCreateOpen, setIsQuestionCreateOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
+  const [viewingQuestion, setViewingQuestion] = useState<Question | null>(null);
   const [deletingQuestion, setDeletingQuestion] = useState<Question | null>(null);
   // 답변
   const [isAnswerCreateOpen, setIsAnswerCreateOpen] = useState(false);
@@ -128,7 +130,15 @@ export default function QnaPage() {
                     <TableBody>
                       {questions.map((q) => (
                         <TableRow key={q.question_id}>
-                          <TableCell className="font-medium">{q.title}</TableCell>
+                          <TableCell className="font-medium">
+                            <button
+                              type="button"
+                              onClick={() => setViewingQuestion(q)}
+                              className="text-left text-blue-600 hover:underline"
+                            >
+                              {q.title}
+                            </button>
+                          </TableCell>
                           <TableCell>{q.user?.name || "-"}</TableCell>
                           <TableCell>
                             <QuestionStatusBadge status={q.question_status} />
@@ -321,6 +331,15 @@ export default function QnaPage() {
           }}
         />
       )}
+
+      {/* 질문 상세 + 매핑된 답변 (질문당 여러 건 가능) */}
+      <QuestionDetailDialog
+        open={!!viewingQuestion}
+        onOpenChange={(open) => !open && setViewingQuestion(null)}
+        question={viewingQuestion}
+        mappings={mappings || []}
+        answers={answers || []}
+      />
 
       {/* 답변 다이얼로그 */}
       <AnswerFormDialog
