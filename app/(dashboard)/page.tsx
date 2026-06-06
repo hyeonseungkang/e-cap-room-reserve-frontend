@@ -9,6 +9,11 @@ import {
   Shield,
   ArrowRight,
   Clock,
+  ClipboardCheck,
+  Ban,
+  AlertTriangle,
+  MessageSquare,
+  Wrench,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -199,6 +204,33 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* 바로가기 */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">관리 메뉴</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            {[
+              { name: "이용 기록", href: "/usage-logs", icon: ClipboardCheck },
+              { name: "취소 기록", href: "/cancellations", icon: Ban },
+              { name: "패널티", href: "/penalties", icon: AlertTriangle },
+              { name: "문의(QnA)", href: "/qna", icon: MessageSquare },
+              { name: "유지보수", href: "/maintenance", icon: Wrench },
+            ].map((item) => (
+              <Link key={item.href} href={item.href}>
+                <div className="flex items-center gap-3 rounded-lg border border-border p-3 transition-colors hover:bg-muted">
+                  <div className="rounded-full bg-blue-100 p-2">
+                    <item.icon className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <span className="text-sm font-medium">{item.name}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

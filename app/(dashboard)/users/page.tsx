@@ -19,6 +19,7 @@ import { LoadingPage } from "@/components/loading";
 import { ErrorPage } from "@/components/error-display";
 import { EmptyState } from "@/components/empty-state";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { ActiveBadge } from "@/components/status-badge";
 import { UserFormDialog } from "./user-form-dialog";
 import { getRelativeTime } from "@/lib/date-utils";
 import { fetcher, userApi, ApiError } from "@/lib/api";
@@ -89,6 +90,7 @@ export default function UsersPage() {
                     <TableHead>연락처</TableHead>
                     <TableHead>부서</TableHead>
                     <TableHead>직책</TableHead>
+                    <TableHead>상태</TableHead>
                     <TableHead>예약 수</TableHead>
                     <TableHead>가입일</TableHead>
                     <TableHead className="w-24 text-right">작업</TableHead>
@@ -124,6 +126,9 @@ export default function UsersPage() {
                       </TableCell>
                       <TableCell>
                           {user.role}
+                      </TableCell>
+                      <TableCell>
+                        <ActiveBadge active={user.is_active} />
                       </TableCell>
                       <TableCell>
                         {user.reservations?.length || 0}건

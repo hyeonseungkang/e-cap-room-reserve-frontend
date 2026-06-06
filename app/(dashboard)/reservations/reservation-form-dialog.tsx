@@ -68,6 +68,7 @@ export function ReservationFormDialog({
     end_time: reservation
       ? toDateTimeLocalString(new Date(reservation.end_time))
       : toDateTimeLocalString(defaultEndTime),
+    participant_count: reservation?.participant_count?.toString() || "",
     purpose: reservation?.purpose || "",
     reservation_status: reservation?.reservation_status || "RESERVED",
   });
@@ -80,10 +81,15 @@ export function ReservationFormDialog({
     const startTime = toISOString(fromDateTimeLocalString(formData.start_time));
     const endTime = toISOString(fromDateTimeLocalString(formData.end_time));
 
+    const participantCount = formData.participant_count
+      ? parseInt(formData.participant_count)
+      : undefined;
+
     const data = {
       start_time: startTime,
       end_time: endTime,
       room_id: parseInt(formData.room_id) || 0,
+      participant_count: participantCount,
       purpose: formData.purpose || undefined,
     };
 
@@ -111,6 +117,7 @@ export function ReservationFormDialog({
         await reservationApi.update(reservation.reservation_id, {
           start_time: startTime,
           end_time: endTime,
+          participant_count: participantCount,
           purpose: formData.purpose || undefined,
           reservation_status: formData.reservation_status,
         });
@@ -120,6 +127,7 @@ export function ReservationFormDialog({
           start_time: startTime,
           end_time: endTime,
           room_id: parseInt(formData.room_id),
+          participant_count: participantCount,
           purpose: formData.purpose || undefined,
         });
         toast.success("예약이 생성되었습니다.");
@@ -237,6 +245,20 @@ export function ReservationFormDialog({
                 <p className="text-sm text-destructive">{errors.end_time}</p>
               )}
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="participant_count">참석 인원</Label>
+            <Input
+              id="participant_count"
+              type="number"
+              min="1"
+              value={formData.participant_count}
+              onChange={(e) =>
+                setFormData({ ...formData, participant_count: e.target.value })
+              }
+              placeholder="예: 5"
+            />
           </div>
 
           <div className="space-y-2">

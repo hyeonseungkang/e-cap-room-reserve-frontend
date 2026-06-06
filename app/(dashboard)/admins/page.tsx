@@ -19,6 +19,7 @@ import { LoadingPage } from "@/components/loading";
 import { ErrorPage } from "@/components/error-display";
 import { EmptyState } from "@/components/empty-state";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { ActiveBadge } from "@/components/status-badge";
 import { AdminFormDialog } from "./admin-form-dialog";
 import { getRelativeTime } from "@/lib/date-utils";
 import { fetcher, adminApi, ApiError } from "@/lib/api";
@@ -89,6 +90,7 @@ export default function AdminsPage() {
                     <TableHead>이메일</TableHead>
                     <TableHead>부서</TableHead>
                     <TableHead>담당 회의실</TableHead>
+                    <TableHead>상태</TableHead>
                     <TableHead>등록일</TableHead>
                     <TableHead className="w-24 text-right">작업</TableHead>
                   </TableRow>
@@ -122,6 +124,9 @@ export default function AdminsPage() {
                         ) : (
                           <span className="text-muted-foreground">-</span>
                         )}
+                      </TableCell>
+                      <TableCell>
+                        <ActiveBadge active={admin.is_active} />
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {getRelativeTime(admin.created_at)}

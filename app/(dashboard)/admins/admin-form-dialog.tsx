@@ -12,6 +12,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { validateAdmin } from "@/lib/validation";
 import { adminApi, ApiError } from "@/lib/api";
@@ -35,7 +42,9 @@ export function AdminFormDialog({
   const [formData, setFormData] = useState({
     name: admin?.name || "",
     email: admin?.email || "",
+    password: "",
     department: admin?.department || "",
+    is_active: admin ? admin.is_active : 1,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -46,7 +55,9 @@ export function AdminFormDialog({
     const data = {
       name: formData.name,
       email: formData.email,
+      password: formData.password || undefined,
       department: formData.department || undefined,
+      is_active: formData.is_active,
     };
 
     const validationErrors = validateAdmin(data, !isEdit);
@@ -136,6 +147,40 @@ export function AdminFormDialog({
             {errors.department && (
               <p className="text-sm text-destructive">{errors.department}</p>
             )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="password">
+              비밀번호 {isEdit && <span className="text-xs text-muted-foreground">(변경 시에만 입력)</span>}
+            </Label>
+            <Input
+              id="password"
+              type="password"
+              value={formData.password}
+              onChange={(e) =>
+                setFormData({ ...formData, password: e.target.value })
+              }
+              placeholder="비밀번호"
+              maxLength={100}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="is_active">계정 상태</Label>
+            <Select
+              value={formData.is_active.toString()}
+              onValueChange={(value) =>
+                setFormData({ ...formData, is_active: parseInt(value) })
+              }
+            >
+              <SelectTrigger id="is_active">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">활성</SelectItem>
+                <SelectItem value="0">비활성</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <DialogFooter>

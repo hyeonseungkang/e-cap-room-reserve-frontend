@@ -42,9 +42,11 @@ export function UserFormDialog({
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
+    password: "",
     department: user?.department || "",
     phone: user?.phone || "",
     role: user?.role || "",
+    is_active: user ? user.is_active : 1,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -55,9 +57,11 @@ export function UserFormDialog({
     const data = {
       name: formData.name,
       email: formData.email,
+      password: formData.password || undefined,
       department: formData.department || undefined,
       phone: formData.phone || undefined,
-      role: formData.role,
+      role: formData.role || undefined,
+      is_active: formData.is_active,
     };
 
     const validationErrors = validateUser(data, !isEdit);
@@ -168,14 +172,48 @@ export function UserFormDialog({
           <div className="space-y-2">
             <Label htmlFor="role">직책</Label>
             <Input
-                id="phone"
+                id="role"
                 value={formData.role}
                 onChange={(e) =>
                     setFormData({ ...formData, role: e.target.value })
                 }
-                placeholder="사원"
+                placeholder="USER"
                 maxLength={20}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="password">
+              비밀번호 {isEdit && <span className="text-xs text-muted-foreground">(변경 시에만 입력)</span>}
+            </Label>
+            <Input
+              id="password"
+              type="password"
+              value={formData.password}
+              onChange={(e) =>
+                setFormData({ ...formData, password: e.target.value })
+              }
+              placeholder="비밀번호"
+              maxLength={100}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="is_active">계정 상태</Label>
+            <Select
+              value={formData.is_active.toString()}
+              onValueChange={(value) =>
+                setFormData({ ...formData, is_active: parseInt(value) })
+              }
+            >
+              <SelectTrigger id="is_active">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">활성</SelectItem>
+                <SelectItem value="0">비활성</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <DialogFooter>
