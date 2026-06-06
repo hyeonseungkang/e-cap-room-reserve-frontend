@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 type RoomStatusType = "AVAILABLE" | "MAINTENANCE" | "UNAVAILABLE" | string;
-type ReservationStatusType = "RESERVED" | "CANCELLED" | "COMPLETED" | string;
+type ReservationStatusType = "RESERVED" | "CANCELED" | "COMPLETED" | string;
 
 interface RoomStatusBadgeProps {
   status: RoomStatusType;

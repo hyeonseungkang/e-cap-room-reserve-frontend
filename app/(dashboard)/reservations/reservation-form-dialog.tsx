@@ -39,7 +39,7 @@ interface ReservationFormDialogProps {
 const RESERVATION_STATUSES = [
   { value: "RESERVED", label: "예약됨" },
   { value: "COMPLETED", label: "완료" },
-  { value: "CANCELLED", label: "취소됨" },
+  { value: "CANCELED", label: "취소됨" },
 ];
 
 export function ReservationFormDialog({

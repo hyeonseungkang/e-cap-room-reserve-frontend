@@ -120,7 +120,7 @@ export interface RoomMaintenanceLog {
 // 상태 열거형 (문자열 타입)
 export type UserRole = "USER" | "STAFF" | string;
 export type RoomStatus = "AVAILABLE" | "MAINTENANCE" | "UNAVAILABLE" | string;
-export type ReservationStatus = "RESERVED" | "CANCELLED" | "COMPLETED" | string;
+export type ReservationStatus = "RESERVED" | "CANCELED" | "COMPLETED" | string;
 export type QuestionStatus = "PENDING" | "ANSWERED" | string;
 
 // API 에러 응답 타입

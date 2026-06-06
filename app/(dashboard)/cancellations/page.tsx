@@ -63,12 +63,12 @@ export default function CancellationsPage() {
       <PageHeader
         title="취소 기록"
         description="예약 취소 기록과 긴급 취소 여부를 관리하세요."
-        actions={
-          <Button onClick={() => setIsCreateOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            취소 기록 생성
-          </Button>
-        }
+        // actions={
+        //   <Button onClick={() => setIsCreateOpen(true)}>
+        //     <Plus className="mr-2 h-4 w-4" />
+        //     취소 기록 생성
+        //   </Button>
+        // }
       />
 
       <Card>
@@ -134,14 +134,14 @@ export default function CancellationsPage() {
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button
+                          {/* <Button
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 text-destructive"
                             onClick={() => setDeleting(log)}
                           >
                             <Trash2 className="h-4 w-4" />
-                          </Button>
+                          </Button> */}
                         </div>
                       </TableCell>
                     </TableRow>

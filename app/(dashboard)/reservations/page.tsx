@@ -2,8 +2,7 @@
 
 import { useState, useMemo } from "react";
 import useSWR from "swr";
-import { Plus, Pencil, Trash2, Search, Filter } from "lucide-react";
-import { toast } from "sonner";
+import { Plus, Pencil, Ban, Search, Filter } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,10 +26,10 @@ import { LoadingPage } from "@/components/loading";
 import { ErrorPage } from "@/components/error-display";
 import { EmptyState } from "@/components/empty-state";
 import { ReservationStatusBadge } from "@/components/status-badge";
-import { ConfirmDialog } from "@/components/confirm-dialog";
 import { ReservationFormDialog } from "./reservation-form-dialog";
+import { CancelReservationDialog } from "./cancel-reservation-dialog";
 import { formatReservationPeriod, getRelativeTime } from "@/lib/date-utils";
-import { fetcher, reservationApi, ApiError } from "@/lib/api";
+import { fetcher } from "@/lib/api";
 import type { User, MeetingRoom, Reservation } from "@/lib/types";
 
 export default function ReservationsPage() {
@@ -42,8 +41,7 @@ export default function ReservationsPage() {
     reservation: Reservation;
     userId: number;
   } | null>(null);
-  const [deletingReservation, setDeletingReservation] = useState<Reservation | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [cancelingReservation, setCancelingReservation] = useState<Reservation | null>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -85,26 +83,6 @@ export default function ReservationsPage() {
       return searchMatch && statusMatch;
     });
   }, [allReservations, searchQuery, statusFilter]);
-
-  const handleDelete = async () => {
-    if (!deletingReservation) return;
-
-    setIsDeleting(true);
-    try {
-      await reservationApi.delete(deletingReservation.reservation_id);
-      toast.success("예약이 삭제되었습니다.");
-      mutateUsers();
-    } catch (err) {
-      if (err instanceof ApiError) {
-        toast.error(err.message);
-      } else {
-        toast.error("예약 삭제 중 오류가 발생했습니다.");
-      }
-    } finally {
-      setIsDeleting(false);
-      setDeletingReservation(null);
-    }
-  };
 
   const isLoading = usersLoading || roomsLoading;
   const error = usersError || roomsError;
@@ -148,7 +126,7 @@ export default function ReservationsPage() {
                   <SelectItem value="all">전체</SelectItem>
                   <SelectItem value="RESERVED">예약됨</SelectItem>
                   <SelectItem value="COMPLETED">완료</SelectItem>
-                  <SelectItem value="CANCELLED">취소됨</SelectItem>
+                  <SelectItem value="CANCELED">취소됨</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -217,14 +195,17 @@ export default function ReservationsPage() {
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive"
-                            onClick={() => setDeletingReservation(reservation)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {reservation.reservation_status === "RESERVED" && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive"
+                              title="예약 취소"
+                              onClick={() => setCancelingReservation(reservation)}
+                            >
+                              <Ban className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -264,17 +245,18 @@ export default function ReservationsPage() {
         />
       )}
 
-      {/* Delete Confirmation */}
-      <ConfirmDialog
-        open={!!deletingReservation}
-        onOpenChange={(open) => !open && setDeletingReservation(null)}
-        title="예약 삭제"
-        description="이 예약을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
-        confirmLabel="삭제"
-        variant="destructive"
-        onConfirm={handleDelete}
-        loading={isDeleting}
-      />
+      {/* Cancel Dialog */}
+      {cancelingReservation && (
+        <CancelReservationDialog
+          open={!!cancelingReservation}
+          onOpenChange={(open) => !open && setCancelingReservation(null)}
+          reservation={cancelingReservation}
+          onSuccess={() => {
+            setCancelingReservation(null);
+            mutateUsers();
+          }}
+        />
+      )}
     </div>
   );
 }
