@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import useSWR from "swr";
-import { Plus, Pencil, Trash2, Link2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Link2, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ import { QuestionStatusBadge } from "@/components/status-badge";
 import { QuestionFormDialog } from "./question-form-dialog";
 import { QuestionDetailDialog } from "./question-detail-dialog";
 import { AnswerFormDialog } from "./answer-form-dialog";
+import { AnswerToQuestionDialog } from "./answer-to-question-dialog";
 import { MappingFormDialog } from "./mapping-form-dialog";
 import { formatDate } from "@/lib/date-utils";
 import { fetcher, qnaApi, ApiError } from "@/lib/api";
@@ -60,6 +61,7 @@ export default function QnaPage() {
   const [isAnswerCreateOpen, setIsAnswerCreateOpen] = useState(false);
   const [editingAnswer, setEditingAnswer] = useState<Answer | null>(null);
   const [deletingAnswer, setDeletingAnswer] = useState<Answer | null>(null);
+  const [answeringQuestion, setAnsweringQuestion] = useState<Question | null>(null);
   // 매핑
   const [isMappingCreateOpen, setIsMappingCreateOpen] = useState(false);
   const [deletingMapping, setDeletingMapping] = useState<QnaMapping | null>(null);
@@ -95,7 +97,7 @@ export default function QnaPage() {
         <TabsList>
           <TabsTrigger value="questions">질문</TabsTrigger>
           <TabsTrigger value="answers">답변</TabsTrigger>
-          <TabsTrigger value="mappings">매핑</TabsTrigger>
+          {/* <TabsTrigger value="mappings">매핑</TabsTrigger> */}
         </TabsList>
 
         {/* 질문 탭 */}
@@ -178,6 +180,64 @@ export default function QnaPage() {
 
         {/* 답변 탭 */}
         <TabsContent value="answers" className="mt-4">
+          {/* 질문 목록 - 클릭하여 답변 작성 */}
+          <Card className="mb-6">
+            <CardContent className="pt-6">
+              <h3 className="mb-4 text-sm font-medium text-muted-foreground">
+                질문 목록 — 답변하기를 눌러 답변을 등록하세요
+              </h3>
+              {!questions || questions.length === 0 ? (
+                <EmptyState
+                  title="등록된 질문이 없습니다"
+                  description="질문 탭에서 먼저 질문을 추가해 주세요."
+                />
+              ) : (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>제목</TableHead>
+                        <TableHead>작성자</TableHead>
+                        <TableHead>상태</TableHead>
+                        <TableHead className="text-center">답변 수</TableHead>
+                        <TableHead className="w-28 text-right">작업</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {questions.map((q) => {
+                        const answerCount = (mappings || []).filter(
+                          (m) => m.question?.question_id === q.question_id
+                        ).length;
+                        return (
+                          <TableRow key={q.question_id}>
+                            <TableCell className="font-medium">{q.title}</TableCell>
+                            <TableCell>{q.user?.name || "-"}</TableCell>
+                            <TableCell>
+                              <QuestionStatusBadge status={q.question_status} />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {answerCount}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setAnsweringQuestion(q)}
+                              >
+                                <MessageSquare className="mr-1.5 h-3.5 w-3.5" />
+                                답변하기
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           <div className="mb-4 flex justify-end">
             <Button onClick={() => setIsAnswerCreateOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
@@ -360,6 +420,22 @@ export default function QnaPage() {
           onSuccess={() => {
             setEditingAnswer(null);
             mutateAnswers();
+          }}
+        />
+      )}
+
+      {/* 질문에 답변 작성 (답변 생성 + 매핑 + 상태 변경) */}
+      {answeringQuestion && (
+        <AnswerToQuestionDialog
+          open={!!answeringQuestion}
+          onOpenChange={(open) => !open && setAnsweringQuestion(null)}
+          question={answeringQuestion}
+          admins={admins || []}
+          onSuccess={() => {
+            setAnsweringQuestion(null);
+            mutateAnswers();
+            mutateMappings();
+            mutateQuestions();
           }}
         />
       )}
