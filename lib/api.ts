@@ -65,7 +65,7 @@ async function api<T>(path: string, options?: RequestInit): Promise<T> {
   });
 
   // DELETE 응답 또는 빈 body (void) 처리
-  if (res.status === 200 && res.headers.get("content-length") === "0") {
+  if (res.status < 400 && res.headers.get("content-length") === "0") {
     return undefined as T;
   }
 
