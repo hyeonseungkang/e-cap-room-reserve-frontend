@@ -139,7 +139,7 @@ export function CancellationFormDialog({
             />
           </div>
 
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label htmlFor="is_late_cancel">긴급(당일) 취소 여부</Label>
             <Select
               value={formData.is_late_cancel.toString()}
@@ -155,7 +155,7 @@ export function CancellationFormDialog({
                 <SelectItem value="1">긴급 취소</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+          </div> */}
 
           <DialogFooter>
             <Button
