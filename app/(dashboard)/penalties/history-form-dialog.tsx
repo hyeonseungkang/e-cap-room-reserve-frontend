@@ -27,14 +27,23 @@ import {
   toISOString,
 } from "@/lib/date-utils";
 import { reservationLabel, type ReservationWithUser } from "@/lib/reservation-utils";
-import type { PenaltyHistory } from "@/lib/types";
+import type { PenaltyHistory, PenaltyPolicy } from "@/lib/types";
 
 interface HistoryFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   history?: PenaltyHistory;
   reservations: ReservationWithUser[];
+  policies: PenaltyPolicy[];
   onSuccess: () => void;
+}
+
+// datetime-local 문자열에 일수를 더한 datetime-local 문자열 반환
+function addDaysToLocal(local: string, days: number): string {
+  if (!local) return "";
+  const d = fromDateTimeLocalString(local);
+  d.setDate(d.getDate() + days);
+  return toDateTimeLocalString(d);
 }
 
 export function HistoryFormDialog({
@@ -42,12 +51,14 @@ export function HistoryFormDialog({
   onOpenChange,
   history,
   reservations,
+  policies,
   onSuccess,
 }: HistoryFormDialogProps) {
   const isEdit = !!history;
 
   const [formData, setFormData] = useState({
     reservation_id: history?.reservation?.reservation_id?.toString() || "",
+    policy_id: "",
     start_date: history?.start_date
       ? toDateTimeLocalString(new Date(history.start_date))
       : "",
@@ -57,6 +68,49 @@ export function HistoryFormDialog({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 시작일 + 선택된 정책의 제한 일수 → 종료일 계산
+  const computeEndDate = (start: string, policyId: string): string => {
+    const policy = policies.find(
+      (p) => p.penalty_policy_id.toString() === policyId
+    );
+    if (!start || !policy || policy.restriction_days == null) return "";
+    return addDaysToLocal(start, policy.restriction_days);
+  };
+
+  // 예약 선택 → 시작일을 예약 종료시각으로 설정하고, 정책이 있으면 종료일 재계산
+  const handleReservationChange = (value: string) => {
+    const res = reservations.find(
+      (r) => r.reservation_id.toString() === value
+    );
+    const start = res ? toDateTimeLocalString(new Date(res.end_time)) : "";
+    setFormData((prev) => ({
+      ...prev,
+      reservation_id: value,
+      start_date: start || prev.start_date,
+      end_date: computeEndDate(start || prev.start_date, prev.policy_id),
+    }));
+  };
+
+  // 정책 선택 → 종료일 = 시작일 + 정책 일수
+  const handlePolicyChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      policy_id: value,
+      end_date: computeEndDate(prev.start_date, value) || prev.end_date,
+    }));
+  };
+
+  // 시작일 수정 → 정책 선택돼 있으면 종료일 재계산
+  const handleStartDateChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      start_date: value,
+      end_date: prev.policy_id
+        ? computeEndDate(value, prev.policy_id) || prev.end_date
+        : prev.end_date,
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,9 +167,7 @@ export function HistoryFormDialog({
               <Label htmlFor="reservation_id">예약 *</Label>
               <Select
                 value={formData.reservation_id}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, reservation_id: value })
-                }
+                onValueChange={handleReservationChange}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="예약 선택" />
@@ -143,6 +195,37 @@ export function HistoryFormDialog({
             </div>
           )}
 
+          <div className="space-y-2">
+            <Label htmlFor="policy_id">패널티 정책</Label>
+            <Select value={formData.policy_id} onValueChange={handlePolicyChange}>
+              <SelectTrigger id="policy_id">
+                <SelectValue placeholder="정책 선택 (종료일 자동 계산)" />
+              </SelectTrigger>
+              <SelectContent>
+                {policies.length === 0 ? (
+                  <SelectItem disabled value="none">
+                    등록된 정책이 없습니다
+                  </SelectItem>
+                ) : (
+                  policies.map((p) => (
+                    <SelectItem
+                      key={p.penalty_policy_id}
+                      value={p.penalty_policy_id.toString()}
+                    >
+                      {p.penalty_type}
+                      {p.restriction_days != null
+                        ? ` (${p.restriction_days}일)`
+                        : ""}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              정책을 선택하면 종료일이 시작일 + 제한 일수로 자동 설정됩니다.
+            </p>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="start_date">시작일</Label>
@@ -150,9 +233,7 @@ export function HistoryFormDialog({
                 id="start_date"
                 type="datetime-local"
                 value={formData.start_date}
-                onChange={(e) =>
-                  setFormData({ ...formData, start_date: e.target.value })
-                }
+                onChange={(e) => handleStartDateChange(e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -162,7 +243,7 @@ export function HistoryFormDialog({
                 type="datetime-local"
                 value={formData.end_date}
                 onChange={(e) =>
-                  setFormData({ ...formData, end_date: e.target.value })
+                  setFormData((prev) => ({ ...prev, end_date: e.target.value }))
                 }
               />
             </div>

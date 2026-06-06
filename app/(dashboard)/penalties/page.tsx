@@ -283,6 +283,7 @@ export default function PenaltiesPage() {
         open={isHistoryCreateOpen}
         onOpenChange={setIsHistoryCreateOpen}
         reservations={reservations}
+        policies={policies || []}
         onSuccess={() => {
           setIsHistoryCreateOpen(false);
           mutateHistories();
@@ -294,6 +295,7 @@ export default function PenaltiesPage() {
           onOpenChange={(open) => !open && setEditingHistory(null)}
           history={editingHistory}
           reservations={reservations}
+          policies={policies || []}
           onSuccess={() => {
             setEditingHistory(null);
             mutateHistories();
