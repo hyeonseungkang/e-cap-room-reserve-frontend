@@ -4,6 +4,14 @@ import type {
     RoomEquipment,
     User,
     Reservation,
+    UsageLog,
+    PenaltyPolicy,
+    PenaltyHistory,
+    CancellationLog,
+    Question,
+    Answer,
+    QnaMapping,
+    RoomMaintenanceLog,
     CreateUserDto,
     UpdateUserDto,
     CreateAdminDto,
@@ -14,7 +22,25 @@ import type {
     UpdateEquipmentDto,
     CreateReservationDto,
     UpdateReservationDto,
-    ApiErrorResponse, UpdatePasswordDto, Me, Login,
+    CreateUsageLogDto,
+    UpdateUsageLogDto,
+    CreatePenaltyPolicyDto,
+    UpdatePenaltyPolicyDto,
+    CreatePenaltyHistoryDto,
+    UpdatePenaltyHistoryDto,
+    CreateCancellationLogDto,
+    UpdateCancellationLogDto,
+    CreateQuestionDto,
+    UpdateQuestionDto,
+    CreateAnswerDto,
+    UpdateAnswerDto,
+    CreateQnaMappingDto,
+    CreateMaintenanceLogDto,
+    UpdateMaintenanceLogDto,
+    ApiErrorResponse,
+    LoginDto,
+    UserLoginResponse,
+    AdminLoginResponse,
 } from "./types";
 import {readAccessToken} from "@/lib/utils";
 
@@ -38,7 +64,7 @@ async function api<T>(path: string, options?: RequestInit): Promise<T> {
     ...options,
   });
 
-  // DELETE 응답 (빈 body)
+  // DELETE 응답 또는 빈 body (void) 처리
   if (res.status === 200 && res.headers.get("content-length") === "0") {
     return undefined as T;
   }
@@ -158,19 +184,176 @@ export const adminApi = {
     }),
 };
 
+// UsageLog API
+export const usageLogApi = {
+  getAll: () => api<UsageLog[]>("/usage-log"),
+  getById: (id: number) => api<UsageLog>(`/usage-log/${id}`),
+  getByReservation: (reservationId: number) =>
+    api<UsageLog>(`/usage-log/reservation/${reservationId}`),
+  create: (data: CreateUsageLogDto) =>
+    api<UsageLog>("/usage-log", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  update: (id: number, data: UpdateUsageLogDto) =>
+    api<UsageLog>(`/usage-log/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  delete: (id: number) =>
+    api<void>(`/usage-log/${id}`, {
+      method: "DELETE",
+    }),
+};
+
+// Penalty API (정책 + 이력)
+export const penaltyApi = {
+  // 정책
+  getPolicies: () => api<PenaltyPolicy[]>("/penalty/policies"),
+  getPolicy: (id: number) => api<PenaltyPolicy>(`/penalty/policies/${id}`),
+  createPolicy: (data: CreatePenaltyPolicyDto) =>
+    api<PenaltyPolicy>("/penalty/policies", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  updatePolicy: (id: number, data: UpdatePenaltyPolicyDto) =>
+    api<PenaltyPolicy>(`/penalty/policies/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  deletePolicy: (id: number) =>
+    api<void>(`/penalty/policies/${id}`, {
+      method: "DELETE",
+    }),
+  // 이력
+  getHistories: () => api<PenaltyHistory[]>("/penalty/history"),
+  getHistory: (id: number) => api<PenaltyHistory>(`/penalty/history/${id}`),
+  getHistoryByReservation: (reservationId: number) =>
+    api<PenaltyHistory[]>(`/penalty/history/reservation/${reservationId}`),
+  createHistory: (data: CreatePenaltyHistoryDto) =>
+    api<PenaltyHistory>("/penalty/history", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  updateHistory: (id: number, data: UpdatePenaltyHistoryDto) =>
+    api<PenaltyHistory>(`/penalty/history/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  deleteHistory: (id: number) =>
+    api<void>(`/penalty/history/${id}`, {
+      method: "DELETE",
+    }),
+};
+
+// CancellationLog API
+export const cancellationLogApi = {
+  getAll: () => api<CancellationLog[]>("/cancellation-log"),
+  getById: (id: number) => api<CancellationLog>(`/cancellation-log/${id}`),
+  getByReservation: (reservationId: number) =>
+    api<CancellationLog[]>(`/cancellation-log/reservation/${reservationId}`),
+  create: (data: CreateCancellationLogDto) =>
+    api<CancellationLog>("/cancellation-log", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  update: (id: number, data: UpdateCancellationLogDto) =>
+    api<CancellationLog>(`/cancellation-log/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  delete: (id: number) =>
+    api<void>(`/cancellation-log/${id}`, {
+      method: "DELETE",
+    }),
+};
+
+// QnA API (질문 + 답변 + 매핑)
+export const qnaApi = {
+  // 질문
+  getQuestions: () => api<Question[]>("/qna/questions"),
+  getQuestion: (id: number) => api<Question>(`/qna/questions/${id}`),
+  createQuestion: (data: CreateQuestionDto) =>
+    api<Question>("/qna/questions", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  updateQuestion: (id: number, data: UpdateQuestionDto) =>
+    api<Question>(`/qna/questions/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  deleteQuestion: (id: number) =>
+    api<void>(`/qna/questions/${id}`, {
+      method: "DELETE",
+    }),
+  // 답변
+  getAnswers: () => api<Answer[]>("/qna/answers"),
+  getAnswer: (id: number) => api<Answer>(`/qna/answers/${id}`),
+  createAnswer: (data: CreateAnswerDto) =>
+    api<Answer>("/qna/answers", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  updateAnswer: (id: number, data: UpdateAnswerDto) =>
+    api<Answer>(`/qna/answers/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  deleteAnswer: (id: number) =>
+    api<void>(`/qna/answers/${id}`, {
+      method: "DELETE",
+    }),
+  // 매핑
+  getMappings: () => api<QnaMapping[]>("/qna/mappings"),
+  getMapping: (id: number) => api<QnaMapping>(`/qna/mappings/${id}`),
+  getMappingByQuestion: (questionId: number) =>
+    api<QnaMapping>(`/qna/mappings/question/${questionId}`),
+  createMapping: (data: CreateQnaMappingDto) =>
+    api<QnaMapping>("/qna/mappings", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  deleteMapping: (id: number) =>
+    api<void>(`/qna/mappings/${id}`, {
+      method: "DELETE",
+    }),
+};
+
+// Maintenance API
+export const maintenanceApi = {
+  getAll: () => api<RoomMaintenanceLog[]>("/maintenance"),
+  getById: (id: number) => api<RoomMaintenanceLog>(`/maintenance/${id}`),
+  getByRoom: (roomId: number) =>
+    api<RoomMaintenanceLog[]>(`/maintenance/room/${roomId}`),
+  create: (data: CreateMaintenanceLogDto) =>
+    api<RoomMaintenanceLog>("/maintenance", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  update: (id: number, data: UpdateMaintenanceLogDto) =>
+    api<RoomMaintenanceLog>(`/maintenance/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  delete: (id: number) =>
+    api<void>(`/maintenance/${id}`, {
+      method: "DELETE",
+    }),
+};
+
 // Auth API
 export const authApi = {
-    me: () => api<Me>("/auth/me"),
-    login: (data: UpdatePasswordDto) =>
-        api<Login>("/auth/login", {
-            method: "POST",
-            body: JSON.stringify(data),
-        }),
-    updatePassword: (data: UpdatePasswordDto) =>
-        api<boolean>("/auth/updatePassword", {
-            method: "POST",
-            body: JSON.stringify(data),
-        }),
+  userLogin: (data: LoginDto) =>
+    api<UserLoginResponse>("/auth/user/login", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  adminLogin: (data: LoginDto) =>
+    api<AdminLoginResponse>("/auth/admin/login", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
 };
 
 // SWR fetcher

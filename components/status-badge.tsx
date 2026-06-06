@@ -87,7 +87,78 @@ export function ReservationStatusBadge({
   );
 }
 
-interface UserRoleBadgeProps {
-  role: string;
+interface QuestionStatusBadgeProps {
+  status: string;
   className?: string;
+}
+
+export function QuestionStatusBadge({ status, className }: QuestionStatusBadgeProps) {
+  const getStatusConfig = (status: string) => {
+    switch (status.toUpperCase()) {
+      case "ANSWERED":
+        return {
+          label: "답변 완료",
+          className: "bg-green-100 text-green-700 hover:bg-green-100",
+        };
+      case "PENDING":
+        return {
+          label: "답변 대기",
+          className: "bg-yellow-100 text-yellow-700 hover:bg-yellow-100",
+        };
+      default:
+        return {
+          label: status,
+          className: "bg-gray-100 text-gray-700 hover:bg-gray-100",
+        };
+    }
+  };
+
+  const config = getStatusConfig(status);
+
+  return (
+    <Badge variant="outline" className={cn(config.className, className)}>
+      {config.label}
+    </Badge>
+  );
+}
+
+interface ActiveBadgeProps {
+  active: number;
+  className?: string;
+}
+
+export function ActiveBadge({ active, className }: ActiveBadgeProps) {
+  return (
+    <Badge
+      variant="outline"
+      className={cn(
+        active
+          ? "bg-green-100 text-green-700 hover:bg-green-100"
+          : "bg-red-100 text-red-700 hover:bg-red-100",
+        className
+      )}
+    >
+      {active ? "활성" : "비활성"}
+    </Badge>
+  );
+}
+
+interface GenericStatusBadgeProps {
+  status?: string | null;
+  className?: string;
+}
+
+// 정해진 enum 이 없는 상태값 (usage_status, maintenance_status 등) 표시용
+export function GenericStatusBadge({ status, className }: GenericStatusBadgeProps) {
+  if (!status) {
+    return <span className="text-muted-foreground">-</span>;
+  }
+  return (
+    <Badge
+      variant="outline"
+      className={cn("bg-gray-100 text-gray-700 hover:bg-gray-100", className)}
+    >
+      {status}
+    </Badge>
+  );
 }
