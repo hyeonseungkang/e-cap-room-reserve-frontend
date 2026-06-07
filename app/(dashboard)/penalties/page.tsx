@@ -22,6 +22,7 @@ import { EmptyState } from "@/components/empty-state";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { PolicyFormDialog } from "./policy-form-dialog";
 import { HistoryFormDialog } from "./history-form-dialog";
+import { HistoryDetailDialog } from "./history-detail-dialog";
 import { formatDate } from "@/lib/date-utils";
 import { flattenReservations } from "@/lib/reservation-utils";
 import { fetcher, penaltyApi, ApiError } from "@/lib/api";
@@ -52,6 +53,13 @@ export default function PenaltiesPage() {
   const [isHistoryCreateOpen, setIsHistoryCreateOpen] = useState(false);
   const [editingHistory, setEditingHistory] = useState<PenaltyHistory | null>(null);
   const [deletingHistory, setDeletingHistory] = useState<PenaltyHistory | null>(null);
+  const [viewingHistory, setViewingHistory] = useState<PenaltyHistory | null>(null);
+
+  // 예약 번호 → 예약(회의실 포함), 사용자 ID → 사용자 정보 조회용
+  const reservationById = new Map(
+    reservations.map((res) => [res.reservation_id, res])
+  );
+  const userById = new Map((users || []).map((u) => [u.user_id, u]));
 
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -209,7 +217,11 @@ export default function PenaltiesPage() {
                     </TableHeader>
                     <TableBody>
                       {histories.map((history) => (
-                        <TableRow key={history.penalty_history_id}>
+                        <TableRow
+                          key={history.penalty_history_id}
+                          className="cursor-pointer"
+                          onClick={() => setViewingHistory(history)}
+                        >
                           <TableCell className="font-medium">
                             {history.reservation
                               ? `#${history.reservation.reservation_id}`
@@ -232,7 +244,10 @@ export default function PenaltiesPage() {
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8"
-                                onClick={() => setEditingHistory(history)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingHistory(history);
+                                }}
                               >
                                 <Pencil className="h-4 w-4" />
                               </Button>
@@ -240,7 +255,10 @@ export default function PenaltiesPage() {
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8 text-destructive"
-                                onClick={() => setDeletingHistory(history)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeletingHistory(history);
+                                }}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -300,6 +318,26 @@ export default function PenaltiesPage() {
             setEditingHistory(null);
             mutateHistories();
           }}
+        />
+      )}
+
+      {/* 이력 상세 보기 */}
+      {viewingHistory && (
+        <HistoryDetailDialog
+          open={!!viewingHistory}
+          onOpenChange={(open) => !open && setViewingHistory(null)}
+          history={viewingHistory}
+          reservation={
+            viewingHistory.reservation
+              ? reservationById.get(viewingHistory.reservation.reservation_id)
+              : undefined
+          }
+          user={(() => {
+            const resId = viewingHistory.reservation?.reservation_id;
+            if (resId == null) return undefined;
+            const res = reservationById.get(resId);
+            return res ? userById.get(res.userId) : undefined;
+          })()}
         />
       )}
 
