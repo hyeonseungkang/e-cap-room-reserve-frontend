@@ -24,6 +24,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { validateReservation } from "@/lib/validation";
 import { toDateTimeLocalString, fromDateTimeLocalString, toISOString } from "@/lib/date-utils";
 import { reservationApi, ApiError } from "@/lib/api";
+import { useSession } from "@/hooks/use-session";
 import type { User, MeetingRoom, Reservation } from "@/lib/types";
 
 interface ReservationFormDialogProps {
@@ -53,6 +54,10 @@ export function ReservationFormDialog({
 }: ReservationFormDialogProps) {
   const isEdit = !!reservation;
 
+  const { session } = useSession();
+  // 일반 사용자는 본인만 예약자로 설정할 수 있다.
+  const isUser = session?.type === "user";
+
   // 기본 시간 설정 (현재 시간 기준 1시간 뒤 ~ 2시간 뒤)
   const defaultStartTime = new Date();
   defaultStartTime.setHours(defaultStartTime.getHours() + 1, 0, 0, 0);
@@ -75,6 +80,9 @@ export function ReservationFormDialog({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // 일반 사용자는 본인 id, 관리자는 선택한 값을 예약자로 사용
+  const effectiveUserId = isUser ? String(session?.id ?? "") : formData.user_id;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -96,7 +104,7 @@ export function ReservationFormDialog({
     const validationErrors = validateReservation(data, !isEdit);
 
     // 생성 시 사용자 선택 필수
-    if (!isEdit && !formData.user_id) {
+    if (!isEdit && !effectiveUserId) {
       validationErrors.push({ field: "user_id", message: "사용자를 선택해 주세요." });
     }
 
@@ -123,7 +131,7 @@ export function ReservationFormDialog({
         });
         toast.success("예약이 수정되었습니다.");
       } else {
-        await reservationApi.create(parseInt(formData.user_id), {
+        await reservationApi.create(parseInt(effectiveUserId), {
           start_time: startTime,
           end_time: endTime,
           room_id: parseInt(formData.room_id),
@@ -162,10 +170,11 @@ export function ReservationFormDialog({
             <div className="space-y-2">
               <Label htmlFor="user_id">예약자 *</Label>
               <Select
-                value={formData.user_id}
+                value={effectiveUserId}
                 onValueChange={(value) =>
                   setFormData({ ...formData, user_id: value })
                 }
+                disabled={isUser}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="사용자 선택" />
@@ -178,6 +187,11 @@ export function ReservationFormDialog({
                   ))}
                 </SelectContent>
               </Select>
+              {isUser && (
+                <p className="text-xs text-muted-foreground">
+                  본인 명의로만 예약할 수 있습니다.
+                </p>
+              )}
               {errors.user_id && (
                 <p className="text-sm text-destructive">{errors.user_id}</p>
               )}
