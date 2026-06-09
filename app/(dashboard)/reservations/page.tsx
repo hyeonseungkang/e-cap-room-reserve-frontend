@@ -30,9 +30,11 @@ import { ReservationFormDialog } from "./reservation-form-dialog";
 import { CancelReservationDialog } from "./cancel-reservation-dialog";
 import { formatReservationPeriod, getRelativeTime } from "@/lib/date-utils";
 import { fetcher } from "@/lib/api";
+import { useSession } from "@/hooks/use-session";
 import type { User, MeetingRoom, Reservation } from "@/lib/types";
 
 export default function ReservationsPage() {
+  const { session } = useSession();
   const { data: users, error: usersError, isLoading: usersLoading, mutate: mutateUsers } = useSWR<User[]>("/user", fetcher);
   const { data: rooms, error: roomsError, isLoading: roomsLoading } = useSWR<MeetingRoom[]>("/meeting-room", fetcher);
 
@@ -159,7 +161,11 @@ export default function ReservationsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredReservations.map((reservation) => (
+                  {filteredReservations.map((reservation) => {
+                    // 본인 예약이거나 관리자일 때만 취소 가능
+                    const canCancel =
+                      session?.type === "admin" || session?.id === reservation.userId;
+                    return (
                     <TableRow key={reservation.reservation_id}>
                       <TableCell>
                         <div className="font-medium">
@@ -195,7 +201,7 @@ export default function ReservationsPage() {
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          {reservation.reservation_status === "RESERVED" && (
+                          {reservation.reservation_status === "RESERVED" && canCancel && (
                             <Button
                               variant="ghost"
                               size="icon"
@@ -209,7 +215,8 @@ export default function ReservationsPage() {
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
