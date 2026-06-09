@@ -145,7 +145,7 @@ export function ReservationFormDialog({
       if (err instanceof ApiError) {
         // 500 에러 (DB CHECK 제약 위반)
         if (err.statusCode === 500) {
-          toast.error("예약 시간을 확인해 주세요. 종료 시간은 시작 시간 이후여야 합니다.");
+          toast.error("정상적인 요청이 아닙니다. 예약 신청을 확인해주세요.");
         } else {
           toast.error(err.message);
         }
